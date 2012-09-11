@@ -25,15 +25,6 @@ UP_ARTICLE = '1[a-z0-9]{7}-[a-z0-9]{4}-[a-z0-9]{4}-[ab89][a-z0-9]{3}-[a-z0-9]{12
 # static files and the API from the same Tornado application with the
 # intent to move the static files to nginx later.
 
-def url_api(url):
-    return '/api'+url
-def url_deapi(url):
-    if re.match('/api/', url):
-        return re.sub('^/api/(.*)$', r'/\1', url)
-    if url == '/api':
-        return '/'
-    raise ValueError('%s does not resemble a reverse-proxied URL' % url)
-
 def clean_string(string):
 	return ' '.join(string.split())
     
@@ -50,9 +41,6 @@ class App(tornado.web.Application):
         self.articles = {}
         
         tornado.web.Application.__init__(self, *args, **kwargs)
-
-    def to_url_deapi(self, *args, **kwargs):
-        return url_deapi(self.reverse_url(*args, **kwargs))
 
     class RHPost(tornado.web.RequestHandler):
         def post(self):
@@ -85,7 +73,7 @@ class App(tornado.web.Application):
                 raise tornado.web.HTTPError(403)
             
             self.set_status(201)
-            self.set_header('Location', self.application.to_url_deapi('Get', uuid))
+            self.set_header('Location', '/'+uuid+'.htm')
 
     class RHGet(tornado.web.RequestHandler):
         def get(self, uuid):
@@ -126,20 +114,12 @@ class App(tornado.web.Application):
                 "</p></body></html>"
             ])
             
-            # NEXT LINE IS FOR TESTING UNICODE
-            print txt
             self.write(txt)
-    
-    class RHUi(tornado.web.RequestHandler):
-        def get(self):
-            self.write(open(os.path.join(os.path.dirname(__file__), 'ui.htm'), 'r').read())
 
 def main(port):
     app = App([
-        tornado.web.URLSpec(url_api('/'), App.RHPost, name='Post'),
-        tornado.web.URLSpec(url_api('/('+UP_ARTICLE+').htm'), App.RHGet, name='Get'),
-        
-        ('/ui', App.RHUi)
+        ('/', App.RHPost),
+        ('/('+UP_ARTICLE+').htm', App.RHGet)
     ])
     
     app.listen(port)
