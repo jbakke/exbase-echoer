@@ -17,7 +17,6 @@
 </style>
 <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js'></script>
 <script>
-function url_api(url) {return '/api' + url;}
 
 function clean(str) {
 	return str.replace(/\s+/g, ' ').trim().replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"');
@@ -60,7 +59,7 @@ $(function(){
             article.body[i] = clean(v);
         });
         
-        $.ajax(url_api('/'), {
+        $.ajax('/exbase/echoer/api/', {
             contentType: 'application/json',
             data: JSON.stringify(article),
             error: function(jqXHR, textStatus, errorThrown){
@@ -68,7 +67,7 @@ $(function(){
             },
             success: function(data, textStatus, jqXHR){
                 url = jqXHR.getResponseHeader('Location');
-                location.replace(url_api(url));
+                location.replace(url);
             },
             type: 'POST'
         });
