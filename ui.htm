@@ -40,7 +40,7 @@ $(function(){
         article = {};
         article.storer = $('#storer').val();
         article['url-original'] = $('#url-original').val();
-        this.article.attachments = [];
+        article.attachments = [];
         $('#attachments input').each(function(i){
             if ($(this).val() != '')
                 article.attachments.push($(this).val());
