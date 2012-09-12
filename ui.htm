@@ -36,7 +36,7 @@ function inputs_on_demand() {
 }
 
 $(function(){
-    $('#submit').click(function(){
+    $('.submit').click(function(){
         article = {};
         article.storer = $('#storer').val();
         article['url-original'] = $('#url-original').val();
@@ -63,7 +63,7 @@ $(function(){
             article.body[i] = clean(v);
         });
         
-        $.ajax('/exbase/echoer/api/', {
+        $.ajax('api/', {
             contentType: 'application/json',
             data: JSON.stringify(article),
             error: function(jqXHR, textStatus, errorThrown){
@@ -77,7 +77,7 @@ $(function(){
         });
     });
     
-    $('#clear').click(function(){
+    $('.clear').click(function(){
         name = $('#storer').val();
         $('input')
             .val('')
@@ -92,8 +92,8 @@ $(function(){
 </script>
 </head>
 <body>
-	<button id='submit'>submit</button>
-    <button id='clear'>clear</button>
+	<button class='submit'>submit</button>
+    <button class='clear'>clear</button>
 	<h1>your name</h1>
 	<input type='text' id='storer' />
 	<h1>original URL</h1>
@@ -119,13 +119,13 @@ $(function(){
 	<h1>date of publication</h1>
     <p>YYYY-MM-DD, e.g. 2012-08-31</p>
 	<input type='text' id='date-of-publication' />
-	<button id='submit'>submit</button>
-    <button id='clear'>clear</button>
+	<button class='submit'>submit</button>
+    <button class='clear'>clear</button>
 	<h1>body</h1>
     <p>Remove extraneous information (e.g. image captions) but don't worry about paragraphs or spacing; it will automatically be cleaned.</p>
 	<textarea id='body'></textarea><br />
-	<button id='submit'>submit</button>
-    <button id='clear'>clear</button>
+	<button class='submit'>submit</button>
+    <button class='clear'>clear</button>
 </body>
 </html>
 
