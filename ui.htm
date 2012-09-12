@@ -39,8 +39,12 @@ $(function(){
     $('#submit').click(function(){
         article = {};
         article.storer = $('#storer').val();
-        if ($('#url-original').val())
-            article['url-original'] = $('#url-original').val();
+        article['url-original'] = $('#url-original').val();
+        this.article.attachments = [];
+        $('#attachments input').each(function(i){
+            if ($(this).val() != '')
+                article.attachments.push($(this).val());
+        });
         article.headline = $('#headline').val();
         article.tags = [];
         $('#tags input').each(function(i){
@@ -82,20 +86,28 @@ $(function(){
         $('textarea').val('');
     });
     
-    $('#tags input, #publications input').bind('input', inputs_on_demand);
+    $('#tags input, #publications input, #attachments input').bind('input', inputs_on_demand);
 });
 
 </script>
 </head>
 <body>
+	<button id='submit'>submit</button>
+    <button id='clear'>clear</button>
 	<h1>your name</h1>
 	<input type='text' id='storer' />
 	<h1>original URL</h1>
+    <p>Leave empty if the article has no permanent URL (e.g. the result of a LexisNexis search).</p>
 	<input type='text' id='url-original' />
+	<h1>attachments</h1>
+    <p>File names of attachments. Keep the attachments and the article in the same folder.</p>
+	<div id='attachments'>
+		<input type='text' />
+    </div>
 	<h1>headline</h1>
 	<input type='text' id='headline' />
 	<h1>tags</h1>
-    <p>Only capitalize proper nouns. Separate parent from child by slash, e.g. "California/budget"</p>
+    <p>Only capitalize proper nouns. Separate parent from child by slash, e.g. "California/budget".</p>
 	<div id='tags'>
 		<input type='text' />
 	</div>
@@ -107,7 +119,10 @@ $(function(){
 	<h1>date of publication</h1>
     <p>YYYY-MM-DD, e.g. 2012-08-31</p>
 	<input type='text' id='date-of-publication' />
+	<button id='submit'>submit</button>
+    <button id='clear'>clear</button>
 	<h1>body</h1>
+    <p>Remove extraneous information (e.g. image captions) but don't worry about paragraphs or spacing; it will automatically be cleaned.</p>
 	<textarea id='body'></textarea><br />
 	<button id='submit'>submit</button>
     <button id='clear'>clear</button>

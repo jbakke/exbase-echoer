@@ -12,6 +12,7 @@ import sys
 from time import mktime
 import tornado.ioloop
 import tornado.web
+import urllib
 from uuid import UUID
 from uuid import uuid4
 
@@ -61,6 +62,7 @@ class App(tornado.web.Application):
                 self.application.articles[uuid] = {
                     'headline': clean_string(obj['headline']),
                     'url-original': clean_string(obj['url-original']),
+                    'attachments': list(clean_string(a) for a in obj['attachments']),
                     'tags': list(clean_string(t) for t in obj['tags']),
                     'datetime-of-publication': datetime.strptime(obj['datetime-of-publication'], '%Y-%m-%dT%H:%M:%S'),
                     'publications': list(clean_string(p) for p in obj['publications']),
@@ -88,33 +90,46 @@ class App(tornado.web.Application):
             del self.application.articles[uuid]
             self.set_header('Content-Disposition', 'attachment; filename="'+uuid+'.htm"')
             
-            txt = ''.join([
+            for txt in [
                 "<!DOCTYPE html><html><head><meta charset='utf-8'><title>",
                 san_html(article['headline']),
                 "</title></head><body><h1 id='headline'>",
                 san_html(article['headline']),
-                "</h1><p id='url-original'><a href='",
-                san_html(article['url-original']),
-                "'>",
-                san_html(article['url-original']),
-                "</a></p><p id='tags'>Tagged in <span class='tag'>",
-                "</span>, <span class='tag'>".join(san_html(t) for t in article['tags']),
-                "</span></p><p id='publications'>Published on <span id='date-of-publication'>",
+                "</h1>",
+                {
+                    False: '',
+                    True: ''.join([
+                        "<p id='url-original'><a href='",
+                        san_html(article['url-original']),
+                        "'>",
+                        san_html(article['url-original']),
+                        "</a></p>"
+                    ])
+                }[bool(article['url-original'])],
+                {
+                    False: '',
+                    True: ''.join([
+                        "<p id='attachments'>Attachments: ",
+                        ', '.join("<a href='%s'>%s</a>" % (urllib.quote(a), a) for a in article['attachments'])
+                    ])
+                }[bool(len(article['attachments']))],
+                "<p id='tags'>Tagged in ",
+                ', '.join("<span class='tag'>%s</span>" % san_html(t) for t in article['tags']),
+                "</p><p id='publications'>Published on <span id='date-of-publication'>",
                 article['datetime-of-publication'].strftime('%a, %d %b %Y'),
-                "</span> in <span class='publication'>",
-                "</span>, <span class='publication'>".join(san_html(p) for p in article['publications']),
-                "</span></p><p id='storage'>Stored by <span id='storer'>",
+                "</span> in ",
+                ', '.join("<span class='publication'>%s</span>" % san_html(p) for p in article['publications']),
+                "</p><p id='storage'>Stored by <span id='storer'>",
                 article['storer'],
                 "</span> on <span id='date-of-storage'>",
                 article['datetime-of-storage'].strftime('%a, %d %b %Y'),
                 "</span> at <span id='time-of-storage'>",
                 article['datetime-of-storage'].strftime('%H:%M:%S PST'),
-                "</span></p><p class='body'>",
-                "</p><p class='body'>".join(san_html(p) for p in article['body']),
-                "</p></body></html>"
-            ])
-            
-            self.write(txt)
+                "</span></p>",
+                ''.join("<p class='body'>%s</p>" % san_html(p) for p in article['body']),
+                "</body></html>"
+            ]:
+                self.write(txt)
 
 def main(port):
     app = App([
