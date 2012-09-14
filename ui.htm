@@ -38,23 +38,23 @@ function inputs_on_demand() {
 $(function(){
     $('.submit').click(function(){
         article = {};
-        article.storer = $('#storer').val();
-        article['url-original'] = $('#url-original').val();
+        article.storer = clean($('#storer').val());
+        article['url-original'] = clean($('#url-original').val());
         article.attachments = [];
         $('#attachments input').each(function(i){
             if ($(this).val() != '')
-                article.attachments.push($(this).val());
+                article.attachments.push(clean($(this).val()));
         });
-        article.headline = $('#headline').val();
+        article.headline = clean($('#headline').val());
         article.tags = [];
         $('#tags input').each(function(i){
             if ($(this).val() != '')
-                article.tags.push($(this).val());
+                article.tags.push(clean($(this).val()));
         });
         article.publications = [];
         $('#publications input').each(function(i){
             if ($(this).val() != '') {
-                article.publications.push($(this).val());
+                article.publications.push(clean($(this).val()));
             }
         });
         article['datetime-of-publication'] = $('#date-of-publication').val()+'T00:00:00';

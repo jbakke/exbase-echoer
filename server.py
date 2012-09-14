@@ -62,13 +62,13 @@ class App(tornado.web.Application):
                 self.application.articles[uuid] = {
                     'headline': clean_string(obj['headline']),
                     'url-original': clean_string(obj['url-original']),
-                    'attachments': list(clean_string(a) for a in obj['attachments']),
-                    'tags': list(clean_string(t) for t in obj['tags']),
+                    'attachments': [clean_string(a) for a in obj['attachments']],
+                    'tags': [clean_string(t) for t in obj['tags']],
                     'datetime-of-publication': datetime.strptime(obj['datetime-of-publication'], '%Y-%m-%dT%H:%M:%S'),
-                    'publications': list(clean_string(p) for p in obj['publications']),
+                    'publications': [clean_string(p) for p in obj['publications']],
                     'storer': clean_string(obj['storer']),
                     'datetime-of-storage': datetime.now(),
-                    'body': list(clean_string(p) for p in obj['body'])
+                    'body': [clean_string(p) for p in obj['body']]
                 }
             except (KeyError, ValueError) as e:
                 print repr(e)
