@@ -133,7 +133,7 @@ class App(tornado.web.Application):
                         ', '.join("<a href='%s'>%s</a>" % (urllib.quote(a), a) for a in article['attachments'])
                     ])
                 }[bool(len(article['attachments']))],
-                "<p id='tags'>%s | Tagged in " % uuid_to_sid(article['uuid']),
+                "<p id='tags'><span id='sid'>%s</span> | Tagged in " % uuid_to_sid(article['uuid']),
                 ', '.join("<span class='tag'>%s</span>" % san_html(t) for t in article['tags']),
                 "</p><p id='publications'>Published on <span id='date-of-publication'>",
                 article['datetime-of-publication'].strftime('%a, %d %b %Y'),
