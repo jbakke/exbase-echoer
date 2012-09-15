@@ -3,6 +3,7 @@ Accept input that will make a valid article and return an HTML document
 that is easily used as a local file and easily scraped into a database.
 """
 
+from binascii import unhexlify, b2a_base64
 from datetime import datetime
 from datetime import tzinfo
 import json
@@ -16,6 +17,8 @@ import urllib
 from uuid import UUID
 from uuid import uuid4
 
+EXBASE_ECHOER_UUID = 'c76fba68-37b1-491a-be93-04c1a470cf3c'
+
 # Regex patterns that match UUIDs with added constraints to represent
 # object types recognized by the application
 
@@ -25,6 +28,16 @@ UP_ARTICLE = '1[a-z0-9]{7}-[a-z0-9]{4}-[a-z0-9]{4}-[ab89][a-z0-9]{3}-[a-z0-9]{12
 # appear to be behind a reverse proxy when it isn't. Useful for serving
 # static files and the API from the same Tornado application with the
 # intent to move the static files to nginx later.
+
+def uuid_to_sid(uuid):
+    hexet = uuid.split('-')[-1]
+    sid = b2a_base64(unhexlify(hexet)).rstrip()
+    sid = sid.replace('/', '_')
+    sid = sid.replace('+', '-')
+    return sid
+
+def san_file_name(txt):
+    return re.sub('[^A-Za-z0-9\- ]', '-', txt)
 
 def clean_string(string):
 	return ' '.join(string.split())
@@ -59,7 +72,10 @@ class App(tornado.web.Application):
                 datetime.strptime(obj['datetime-of-publication'], '%Y-%m-%dT%H:%M:%S').strftime('%a, %d %b %Y')
                 
                 uuid = '1' + str(uuid4())[1:]
-                self.application.articles[uuid] = {
+                sid = uuid_to_sid(uuid)
+                fn = '%s - %s' % (sid, san_file_name(clean_string(obj['headline'])))
+                self.application.articles[fn] = {
+                    'uuid': uuid,
                     'headline': clean_string(obj['headline']),
                     'url-original': clean_string(obj['url-original']),
                     'attachments': [clean_string(a) for a in obj['attachments']],
@@ -75,25 +91,29 @@ class App(tornado.web.Application):
                 raise tornado.web.HTTPError(403)
             
             self.set_status(201)
-            self.set_header('Location', '/'+uuid+'.htm')
+            self.set_header('Location', '/'+urllib.quote(fn)+'.htm')
 
     class RHGet(tornado.web.RequestHandler):
-        def get(self, uuid):
+        def get(self, fn):
+            fn = urllib.unquote(fn)
             try:
-                article=self.application.articles[uuid]
+                article=self.application.articles[fn]
             except KeyError:
                 raise tornado.web.HTTPError(404)
             
             self.set_header('Content-Type', 'text/html; charset=utf-8')
             # UNCOMMENT THESE TO FREE MEMORY AND ENFORCE DOWNLOAD
             # BEHAVIOR IN PRODUCTION
-            del self.application.articles[uuid]
-            self.set_header('Content-Disposition', 'attachment; filename="'+uuid+'.htm"')
+            del self.application.articles[fn]
+            self.set_header('Content-Disposition', 'attachment; filename="'+fn+'.htm"')
             
             for txt in [
+                "<!--%s-->" % EXBASE_ECHOER_UUID,
                 "<!DOCTYPE html><html><head><meta charset='utf-8'><title>",
                 san_html(article['headline']),
-                "</title></head><body><h1 id='headline'>",
+                "</title></head>",
+                "<article id='%s'>" % article['uuid'],
+                "<body><h1 id='headline'>",
                 san_html(article['headline']),
                 "</h1>",
                 {
@@ -113,7 +133,7 @@ class App(tornado.web.Application):
                         ', '.join("<a href='%s'>%s</a>" % (urllib.quote(a), a) for a in article['attachments'])
                     ])
                 }[bool(len(article['attachments']))],
-                "<p id='tags'>Tagged in ",
+                "<p id='tags'>%s | Tagged in " % uuid_to_sid(article['uuid']),
                 ', '.join("<span class='tag'>%s</span>" % san_html(t) for t in article['tags']),
                 "</p><p id='publications'>Published on <span id='date-of-publication'>",
                 article['datetime-of-publication'].strftime('%a, %d %b %Y'),
@@ -127,14 +147,14 @@ class App(tornado.web.Application):
                 article['datetime-of-storage'].strftime('%H:%M:%S PST'),
                 "</span></p>",
                 ''.join("<p class='body'>%s</p>" % san_html(p) for p in article['body']),
-                "</body></html>"
+                "</article></body></html>"
             ]:
                 self.write(txt)
 
 def main(port):
     app = App([
         ('/', App.RHPost),
-        ('/('+UP_ARTICLE+').htm', App.RHGet)
+        ('/([^.]+).htm', App.RHGet)
     ])
     
     app.listen(port)
