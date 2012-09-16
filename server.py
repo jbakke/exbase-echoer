@@ -111,9 +111,9 @@ class App(tornado.web.Application):
                 "<!--%s-->" % EXBASE_ECHOER_UUID,
                 "<!DOCTYPE html><html><head><meta charset='utf-8'><title>",
                 san_html(article['headline']),
-                "</title></head>",
+                "</title></head><body>",
                 "<article id='%s'>" % article['uuid'],
-                "<body><h1 id='headline'>",
+                "<h1 id='headline'>",
                 san_html(article['headline']),
                 "</h1>",
                 {
