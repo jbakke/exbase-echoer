@@ -58,7 +58,7 @@ class App(tornado.web.Application):
 
     class RHPost(tornado.web.RequestHandler):
         def post(self):
-            if self.request.headers['Content-Type'] != 'application/json':
+            if 'application/json' not in self.request.headers['Content-Type']:
                 raise tornado.web.HTTPError(415)
             
             try:
