@@ -8,6 +8,7 @@ from datetime import datetime
 from datetime import tzinfo
 import json
 import os.path
+import pytz
 import re
 import sys
 from time import mktime
@@ -83,7 +84,7 @@ class App(tornado.web.Application):
                     'datetime-of-publication': datetime.strptime(obj['datetime-of-publication'], '%Y-%m-%dT%H:%M:%S'),
                     'publications': [clean_string(p) for p in obj['publications']],
                     'storer': clean_string(obj['storer']),
-                    'datetime-of-storage': datetime.now(),
+                    'datetime-of-storage': datetime.now(pytz.timezone('US/Pacific')),
                     'body': [clean_string(p) for p in obj['body']]
                 }
             except (KeyError, ValueError) as e:
@@ -144,7 +145,7 @@ class App(tornado.web.Application):
                 "</span> on <span id='date-of-storage'>",
                 article['datetime-of-storage'].strftime('%a, %d %b %Y'),
                 "</span> at <span id='time-of-storage'>",
-                article['datetime-of-storage'].strftime('%H:%M:%S PST'),
+                article['datetime-of-storage'].strftime('%H:%M:%S %Z'),
                 "</span></p>",
                 ''.join("<p class='body'>%s</p>" % san_html(p) for p in article['body']),
                 "</article></body></html>"
